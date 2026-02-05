@@ -182,7 +182,8 @@ Le système repose sur une base de données relationnelle permettant une gestion
 ### Diagramme Logique (simplifié)
 TBD
 
-```
+----
+
 ### 🔮 Évolutions Futures
 
 - Gestion multi-magasins
