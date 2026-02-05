@@ -180,12 +180,8 @@ Le système repose sur une base de données relationnelle permettant une gestion
 ---
 
 ### Diagramme Logique (simplifié)
+TBD
 
-```text
-USERS ────┐
-          └─── STOCK_MOVEMENTS ─── PRODUCT_VARIANTS ─── PRODUCTS ─── CATEGORIES
-                                   │
-                                   └── STOCK (quantité, seuil)
 ```
 ### 🔮 Évolutions Futures
 
