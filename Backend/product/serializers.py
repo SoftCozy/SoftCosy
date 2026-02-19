@@ -1,4 +1,3 @@
-from psycopg import Transaction
 from rest_framework import serializers
 from .models import Category, Product, Variant
 from django.db import transaction
