@@ -1,4 +1,24 @@
 from rest_framework import serializers
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
+
+# Serializer personnalisé pour l'authentification par token avec email
+class CustomAuthTokenSerializer(serializers.Serializer):
+    email = serializers.EmailField(label="Email")
+    password = serializers.CharField(label="Mot de passe", style={'input_type': 'password'}, trim_whitespace=False)
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        if email and password:
+            user = authenticate(request=self.context.get('request'), email=email, password=password)
+            if not user:
+                raise serializers.ValidationError("Impossible de se connecter avec les identifiants fournis.", code='authorization')
+        else:
+            raise serializers.ValidationError("Email et mot de passe sont obligatoires.")
+        attrs['user'] = user
+        return attrs
 from .models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -8,7 +28,7 @@ class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'email', 'full_name', 'phone', 'address',
+            'id', 'username', 'email', 'full_name', 'phone', 'address',
             'role', 'is_active', 'is_staff', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
@@ -18,7 +38,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'email', 'full_name', 'phone', 'address',
+            'id', 'username', 'email', 'full_name', 'phone', 'address',
             'role', 'is_active', 'is_staff', 'is_superuser',
             'created_at'
         ]
@@ -32,7 +52,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'email', 'full_name', 'phone', 'address',
+            'username', 'email', 'full_name', 'phone', 'address',
             'role', 'password', 'password2'
         ]
 
@@ -49,6 +69,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         validated_data.pop('password2')
         password = validated_data.pop('password')
         user = User.objects.create_user(
+            username=validated_data.get('username'),
             email=validated_data['email'],
             full_name=validated_data.get('full_name'),
             phone=validated_data.get('phone'),
