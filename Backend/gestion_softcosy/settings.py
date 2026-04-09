@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'axes',  # Ajout pour le verrouillage après tentatives échouées
+    'debug_toolbar',  # Ajout pour le debug toolbar
 ]
 
 # Configuration django-axes : verrouillage après 3 tentatives échouées
@@ -94,6 +95,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',  # Ajout du middleware Debug Toolbar
 ]
 
 ROOT_URLCONF = 'gestion_softcosy.urls'
@@ -169,3 +171,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+INTERNAL_ips =[
+    '127.0.0.1',
+]

@@ -1,9 +1,6 @@
 from django.shortcuts import render
-
-# Create your views here.
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny #IsAuthenticatedOrReadOnly  # ou AllowAny au début
-
 from .models import Category, Product, Variant
 from .serializers import (
     CategorySerializer,
