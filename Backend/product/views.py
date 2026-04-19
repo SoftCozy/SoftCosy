@@ -1,9 +1,5 @@
-from django.shortcuts import render
-
-# Create your views here.
 from rest_framework import viewsets
-from rest_framework.permissions import AllowAny #IsAuthenticatedOrReadOnly  # ou AllowAny au début
-
+from rest_framework.permissions import IsAuthenticated
 from .models import Category, Product, Variant
 from .serializers import (
     CategorySerializer,
@@ -17,7 +13,7 @@ from .serializers import (
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     search_fields = ['name']
     ordering_fields = ['name', 'created_at']
     ordering = ['name']
@@ -26,14 +22,14 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class VariantViewSet(viewsets.ModelViewSet):
     queryset = Variant.objects.select_related('product')
     serializer_class = VariantSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filterset_fields = ['product', 'is_active', 'size']
     search_fields = ['sku', 'barcode', 'model']
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.select_related('category').prefetch_related('variants')
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     search_fields = ['name', 'code_produit']
     ordering_fields = ['name']
     ordering = ['name']

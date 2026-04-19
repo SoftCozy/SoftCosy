@@ -28,4 +28,5 @@ urlpatterns = [
     path('api/', include('inventorycount.urls')),
     path('api/', include('audit.urls')),
     path('api/token/', CustomObtainAuthToken.as_view(), name='api_token_auth'),
+    path('__debug__/', include('debug_toolbar.urls')),
 ]
