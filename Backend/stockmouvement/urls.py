@@ -1,11 +1,12 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import StockViewSet, StockMovementViewSet, AlertViewSet
+from rest_framework.routers import SimpleRouter
+from .views import StockViewSet, StockMovementViewSet, AlertViewSet, SystemSettingsViewSet
 
-router = DefaultRouter()
+router = SimpleRouter()
 router.register(r'stocks', StockViewSet)
 router.register(r'stock-movements', StockMovementViewSet)
 router.register(r'alerts', AlertViewSet)
+router.register(r'settings', SystemSettingsViewSet, basename='system-settings')
 
 urlpatterns = [
     path('', include(router.urls)),

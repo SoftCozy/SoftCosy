@@ -53,6 +53,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
+    image = models.ImageField(upload_to='users/', null=True, blank=True)
+    image_url = models.URLField(max_length=500, null=True, blank=True)
     created_at = models.DateField(auto_now_add=True)
 
     # Relationships (reverse relations will be handled by Sale, InventoryCount, Purchase, AuditLog, StockMovement models)

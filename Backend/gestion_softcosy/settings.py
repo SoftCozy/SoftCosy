@@ -1,5 +1,6 @@
 # Backend d'authentification par email
 AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
     'user.backends.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
@@ -33,10 +34,11 @@ SECRET_KEY = 'django-insecure-q=jiv%#!+-6w6u%cc))4((0*^rbmge%qj4i$3^-62k!&8=p7i+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # Application definition
 INSTALLED_APPS = [
+    'corsheaders',  # CORS support
     'user',
     'product',
     'inventorycount',
@@ -44,6 +46,7 @@ INSTALLED_APPS = [
     'purchase',
     'audit.apps.AuditConfig',
     'stockmouvement',
+    'dashboard',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -57,22 +60,35 @@ INSTALLED_APPS = [
 
 # Configuration django-axes : verrouillage après 3 tentatives échouées
 AXES_FAILURE_LIMIT = 3
-AXES_COOLOFF_TIME = 0.09  # 5 minutes de verrouillage
-AXES_LOCKOUT_TEMPLATE = None  # Utilise la réponse JSON par défaut pour API
+AXES_COOLOFF_TIME = 0.0833  # 5 minutes de verrouillage (5/60 = 0.0833)
+AXES_LOCKOUT_CALLABLE = 'gestion_softcosy.utils.axes_lockout_json'
+AXES_USERNAME_FORM_FIELD = 'email'
+AXES_ENABLE_ACCESS_FAILURE_LOG = True
+AXES_RESET_ON_SUCCESS = True
 
 
 # Use custom user model
 AUTH_USER_MODEL = 'user.User'
 
-# Authentification REST
+# Authentification REST et Optimisations
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',  # utile pour le browsable API
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/hour'
+    }
 }
 
 # Optionnel : mot de passe plus sécurisé (Argon2 recommandé en 2026)
@@ -86,6 +102,7 @@ PASSWORD_HASHERS = [
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware (doit être avant CommonMiddleware)
     'axes.middleware.AxesMiddleware',  # Ajout du middleware Axes
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -169,3 +186,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Configuration CORS pour accepter les requêtes du frontend
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+# Media files configuration (Uploaded images)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

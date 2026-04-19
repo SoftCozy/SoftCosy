@@ -9,6 +9,7 @@ class Product(models.Model):
 	description = models.TextField(blank=True, null=True)
 	code_produit = models.CharField(max_length=100, blank=True, null=True)
 	image_url = models.CharField(max_length=255, blank=True, null=True)
+	image = models.ImageField(upload_to='products/images/', null=True, blank=True)
 
 	category = models.ForeignKey("product.Category", on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
 
@@ -17,6 +18,19 @@ class Product(models.Model):
 		verbose_name = "Product"
 		verbose_name_plural = "Products"
 		ordering = ["name"]
+
+	def save(self, *args, **kwargs):
+		if not self.id and not self.code_produit:
+			last_p = Product.objects.all().order_by('id').last()
+			if last_p and last_p.code_produit and last_p.code_produit.startswith('PROD-'):
+				try:
+					last_num = int(last_p.code_produit.split('-')[1])
+					self.code_produit = f"PROD-{last_num + 1:05d}"
+				except:
+					pass
+			if not self.code_produit:
+				self.code_produit = "PROD-00001"
+		super().save(*args, **kwargs)
 
 	def __str__(self):
 		return self.name or f"Product {self.id}"
@@ -52,6 +66,19 @@ class Variant(models.Model):
 	attributes = models.JSONField(null=True, blank=True)
 	is_active = models.BooleanField(default=True)
 	created_or_updated_at = models.DateField(auto_now=True, null=False)
+
+	def save(self, *args, **kwargs):
+		if not self.id and not self.sku:
+			last_v = Variant.objects.all().order_by('id').last()
+			if last_v and last_v.sku and last_v.sku.startswith('SKU-'):
+				try:
+					last_num = int(last_v.sku.split('-')[1])
+					self.sku = f"SKU-{last_num + 1:05d}"
+				except:
+					pass
+			if not self.sku:
+				self.sku = "SKU-00001"
+		super().save(*args, **kwargs)
 
 	class Meta:
 		db_table = "variant"

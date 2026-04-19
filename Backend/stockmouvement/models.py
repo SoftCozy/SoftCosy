@@ -22,26 +22,41 @@ class Stock(models.Model):
 class StockMovement(models.Model):
     """Model for stock movements (mouvements de stock)"""
 
+    # Choix des types de mouvement
     MOVEMENT_TYPE_CHOICES = (
         ("ENTREE", "Entrée"),
         ("SORTIE", "Sortie"),
+        ("AJUSTEMENT", "Ajustement"),
     )
 
-    REASON = (
+    # Choix des raisons (Synchronisé avec le frontend)
+    REASON_CHOICES = (
+        ("ACHAT_FOURNISSEUR", "Achat fournisseur"),
+        ("RETOUR_TEST", "Retour de test"),
+        ("CORRECTION_INVENTAIRE", "Correction inventaire"),
+        ("CADEAU_PROMO", "Cadeau/Promotion"),
         ("VENTE", "Vente"),
-        ("ACHAT", "Achat"),
-        ("INVENTAIRE", "Inventaire"),
+        ("SORTIE_MAGASIN", "Sortie magasin"),
+        ("CASSE_PERTE", "Casse/Perte"),
+        ("ECHANTILLON", "Echantillon"),
+        ("INVENTAIRE_ANNUEL", "Inventaire annuel"),
+        ("CORRECTION_MANUELLE", "Correction manuelle"),
+        ("PEREMPTION", "Péremption"),
+        ("RETOUR_CLIENT", "Retour client"),
+        ("REMBOURSEMENT", "Remboursement"),
         ("AUTRE", "Autre"),
     )
 
     id = models.AutoField(primary_key=True)
     stock = models.ForeignKey("stockmouvement.Stock", on_delete=models.CASCADE, related_name="movements", null=True, blank=True)
+    # Pour les mouvements au niveau produit (sans variante), on lie directement au produit
+    product = models.ForeignKey("product.Product", on_delete=models.SET_NULL, null=True, blank=True, related_name="stock_movements")
     sale_line = models.ForeignKey("sale.SaleLine", on_delete=models.SET_NULL, null=True, blank=True, related_name="stock_movements")
     purchase_line = models.ForeignKey("purchase.PurchaseLine", on_delete=models.SET_NULL, null=True, blank=True, related_name="stock_movements")
     user = models.ForeignKey("user.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="stock_movements")
     movement_type = models.CharField(max_length=20, choices=MOVEMENT_TYPE_CHOICES)
     quantite = models.IntegerField()
-    reason = models.CharField(max_length=32, choices=REASON, null=True, blank=True)
+    reason = models.CharField(max_length=32, choices=REASON_CHOICES, null=True, blank=True)
     date = models.DateField(auto_now_add=True)
     notes = models.TextField(null=True, blank=True)
 
@@ -61,7 +76,8 @@ class Alert(models.Model):
     ALERT_TYPE_CHOICES = (
         ("stock_bas", "Stock Bas"),
         ("vente_anormale", "Vente Anormale"),
-        ("audit_purge_warning", "Avertissement purge journal d'audit"),   # ← NOUVEAU TYPE
+        ("audit_purge_warning", "Avertissement purge journal d'audit"),
+        ("securite", "Sécurité"),
     )
 
     SEVERITY_CHOICES = (
@@ -107,3 +123,20 @@ class Alert(models.Model):
 
     def __str__(self):
         return f"Alert: {self.titre} ({self.severite}) - {self.type}"
+
+
+class SystemSettings(models.Model):
+    """Global system settings for thresholds and notifications"""
+    low_stock_threshold = models.IntegerField(default=10)
+    critical_stock_threshold = models.IntegerField(default=5)
+    notify_low_stock = models.BooleanField(default=True)
+    notify_system_updates = models.BooleanField(default=True)
+    notify_weekly_report = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "systemsettings"
+        verbose_name = "System Settings"
+        verbose_name_plural = "System Settings"
+
+    def __str__(self):
+        return "Paramètres Système Globaux"

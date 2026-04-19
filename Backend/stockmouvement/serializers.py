@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Stock, StockMovement, Alert
+from .models import Stock, StockMovement, Alert, SystemSettings
 
 
 class StockSerializer(serializers.ModelSerializer):
@@ -17,13 +17,75 @@ class StockSerializer(serializers.ModelSerializer):
 
 
 class StockMovementSerializer(serializers.ModelSerializer):
+    variant_sku = serializers.SerializerMethodField(read_only=True)
+    product_name = serializers.SerializerMethodField(read_only=True)
+    product_id = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = StockMovement
         fields = [
-            'id', 'stock', 'sale_line', 'purchase_line', 'user',
+            'id', 'stock', 'product', 'variant_sku', 'product_name', 'product_id',
+            'sale_line', 'purchase_line', 'user',
             'movement_type', 'quantite', 'reason', 'date', 'notes'
         ]
         read_only_fields = ['id', 'date', 'user']
+
+    def get_variant_sku(self, obj):
+        if obj.stock and obj.stock.variant:
+            return obj.stock.variant.sku
+        return None
+
+    def get_product_name(self, obj):
+        # Chain: direct product → stock.variant.product → purchase_line.product → sale_line.product
+        if obj.product:
+            return obj.product.name
+        if obj.stock and obj.stock.variant and obj.stock.variant.product:
+            return obj.stock.variant.product.name
+        if obj.purchase_line and obj.purchase_line.product:
+            return obj.purchase_line.product.name
+        if obj.sale_line and obj.sale_line.product:
+            return obj.sale_line.product.name
+        return None
+
+    def get_product_id(self, obj):
+        if obj.product:
+            return obj.product.id
+        if obj.stock and obj.stock.variant and obj.stock.variant.product:
+            return obj.stock.variant.product.id
+        if obj.purchase_line and obj.purchase_line.product:
+            return obj.purchase_line.product.id
+        if obj.sale_line and obj.sale_line.product:
+            return obj.sale_line.product.id
+        return None
+
+    def validate(self, data):
+        # Prevent negative stock (only for variant-linked movements)
+        movement_type = data.get('movement_type', getattr(self.instance, 'movement_type', None))
+        quantite = data.get('quantite', getattr(self.instance, 'quantite', None))
+        stock = data.get('stock', getattr(self.instance, 'stock', None))
+
+        if stock and quantite and movement_type:
+            current_stock_qty = stock.on_hand_qty
+            
+            # If updating, we must consider the old movement effect
+            old_effect = 0
+            if self.instance and self.instance.pk:
+                old_qty = self.instance.quantite
+                old_type = self.instance.movement_type
+                if old_type in ["ENTREE", "AJUSTEMENT"]:
+                    old_effect = old_qty
+                else:
+                    old_effect = -old_qty
+            
+            new_effect = quantite if movement_type in ["ENTREE", "AJUSTEMENT"] else -quantite
+            resulting_stock = current_stock_qty - old_effect + new_effect
+            
+            if resulting_stock < 0:
+                raise serializers.ValidationError({
+                    "quantite": f"Opération refusée : le stock final serait de {resulting_stock}. Vous n'avez pas assez d'articles."
+                })
+
+        return data
 
 
 class AlertSerializer(serializers.ModelSerializer):
@@ -35,3 +97,9 @@ class AlertSerializer(serializers.ModelSerializer):
             'created_or_updated_at', 'user'
         ]
         read_only_fields = ['id', 'dateAlerte', 'created_or_updated_at', 'user']
+
+
+class SystemSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SystemSettings
+        fields = '__all__'

@@ -1,31 +1,60 @@
 """
-URL configuration for gestion_softcosy project.
+Configuration des URLs pour le projet gestion_softcosy.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Ce fichier centralise toutes les routes de l'API en utilisant un router unique pour éviter
+les conflits entre les différentes applications (shadowing d'URL).
 """
 from django.contrib import admin
 from django.urls import path, include
-from user.views import CustomObtainAuthToken
+from rest_framework.routers import DefaultRouter
+
+# Import des vues de chaque application
+from user.views import CustomObtainAuthToken, UserViewSet
+from product.views import CategoryViewSet, ProductViewSet, VariantViewSet
+from sale.views import CustomerViewSet, SaleViewSet, SaleLineViewSet
+from stockmouvement.views import StockViewSet, StockMovementViewSet, AlertViewSet, SystemSettingsViewSet
+from purchase.views import SupplierViewSet, PurchaseViewSet, PurchaseLineViewSet
+from inventorycount.views import InventoryCountViewSet, InventoryLineViewSet
+from audit.views import AuditLogViewSet
+from dashboard.views import DashboardViewSet
+
+# Création du router principal (DefaultRouter gère l'api-root racine)
+router = DefaultRouter()
+
+# Enregistrement des ViewSets de chaque application
+router.register(r'users', UserViewSet, basename='user')
+router.register(r'categories', CategoryViewSet, basename='category')
+router.register(r'products', ProductViewSet, basename='product')
+router.register(r'variants', VariantViewSet, basename='variant')
+router.register(r'customers', CustomerViewSet, basename='customer')
+router.register(r'sales', SaleViewSet, basename='sale')
+router.register(r'sale-lines', SaleLineViewSet, basename='sale-line')
+router.register(r'stocks', StockViewSet, basename='stock')
+router.register(r'stock-movements', StockMovementViewSet, basename='stock-movement')
+router.register(r'alerts', AlertViewSet, basename='alert')
+router.register(r'suppliers', SupplierViewSet, basename='supplier')
+router.register(r'purchases', PurchaseViewSet, basename='purchase')
+router.register(r'purchase-lines', PurchaseLineViewSet, basename='purchase-line')
+router.register(r'inventory-counts', InventoryCountViewSet, basename='inventory-count')
+router.register(r'inventory-lines', InventoryLineViewSet, basename='inventory-line')
+router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
+router.register(r'settings', SystemSettingsViewSet, basename='system-settings')
+router.register(r'dashboard', DashboardViewSet, basename='dashboard')
+
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('product.urls')),
-    path('api/', include('user.urls')),
-    path('api/', include('sale.urls')),
-    path('api/', include('stockmouvement.urls')),
-    path('api/', include('purchase.urls')),
-    path('api/', include('inventorycount.urls')),
-    path('api/', include('audit.urls')),
+    # Point d'entrée pour l'authentification par Token
     path('api/token/', CustomObtainAuthToken.as_view(), name='api_token_auth'),
+    
+    # Interface d'administration Django
+    path('admin/', admin.site.urls),
+    
+    # Toutes les routes de l'API sont servies sous le préfixe /api/
+    path('api/', include(router.urls)),
 ]
+
+# Servir les fichiers média en développement
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

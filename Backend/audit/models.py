@@ -18,7 +18,7 @@ class AuditLog(models.Model):
 	object_id = models.IntegerField(null=True, blank=True)
 	data_before = models.JSONField(null=True, blank=True)
 	data_after = models.JSONField(null=True, blank=True)
-	perform_at = models.DateField(auto_now_add=True)
+	perform_at = models.DateTimeField(auto_now_add=True)
 	user_agent = models.CharField(max_length=512, blank=True, null=True)
 
 	class Meta:

@@ -32,7 +32,12 @@ class InventoryLineSerializer(serializers.ModelSerializer):
 
 
 class InventoryCountListSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.username', read_only=True, allow_null=True)
+    user_name = serializers.SerializerMethodField()
+
+    def get_user_name(self, obj):
+        if obj.user:
+            return obj.user.full_name or obj.user.username
+        return None
 
     class Meta:
         model = InventoryCount
@@ -57,7 +62,12 @@ class InventoryCountListSerializer(serializers.ModelSerializer):
 
 
 class InventoryCountDetailSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.username', read_only=True, allow_null=True)
+    user_name = serializers.SerializerMethodField()
+
+    def get_user_name(self, obj):
+        if obj.user:
+            return obj.user.full_name or obj.user.username
+        return None
     lines = InventoryLineSerializer(many=True, read_only=True)
 
     class Meta:
@@ -137,7 +147,7 @@ class InventoryCountUpdateSerializer(serializers.ModelSerializer):
                 expected = stock.available_qty if stock else 0
 
                 counted = line_data.get('counted_qty', 0)
-                ecart = expected - counted
+                ecart = counted - expected
 
                 discrepancy_str = f"{ecart:+d}" if ecart != 0 else "OK"
 

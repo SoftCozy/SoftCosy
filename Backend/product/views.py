@@ -40,7 +40,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return ProductListSerializer
+            return ProductDetailSerializer
         if self.action == 'retrieve':
             return ProductDetailSerializer
         # Pour create, update, partial_update → on utilise le serializer FULL writable

@@ -42,6 +42,7 @@ class SaleLineSerializer(serializers.ModelSerializer):
 class SaleListSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer(read_only=True)
     user = serializers.StringRelatedField()  # ou PrimaryKeyRelatedField selon tes besoins
+    items_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Sale
@@ -50,6 +51,7 @@ class SaleListSerializer(serializers.ModelSerializer):
             'invoice_number',
             'user',
             'customer',
+            'customer_name',
             'sold_at',
             'channel',
             'subtotal',
@@ -57,8 +59,13 @@ class SaleListSerializer(serializers.ModelSerializer):
             'total',
             'status',
             'created_at',
+            'items_count',
         ]
         read_only_fields = ['id', 'created_at', 'subtotal', 'total']  # calculés
+
+    def get_items_count(self, obj):
+        return sum(line.quantity for line in obj.lines.all())
+
 
 
 class SaleDetailSerializer(serializers.ModelSerializer):
@@ -73,6 +80,7 @@ class SaleDetailSerializer(serializers.ModelSerializer):
             'invoice_number',
             'user',
             'customer',
+            'customer_name',
             'sold_at',
             'channel',
             'subtotal',
@@ -96,6 +104,7 @@ class SaleCreateUpdateSerializer(serializers.ModelSerializer):
             'invoice_number',
             'user',
             'customer',
+            'customer_name',
             'sold_at',
             'channel',
             'discount_amount',
@@ -115,8 +124,13 @@ class SaleCreateUpdateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
+        from django.utils import timezone
         lines_data = validated_data.pop('lines', [])
         
+        # S'assurer que sold_at est rempli si non fourni
+        if not validated_data.get('sold_at'):
+            validated_data['sold_at'] = timezone.now()
+
         # Création de la vente (sans subtotal/total pour l'instant)
         sale = Sale.objects.create(**validated_data)
 
@@ -164,6 +178,9 @@ class SaleCreateUpdateSerializer(serializers.ModelSerializer):
 
             instance.subtotal = subtotal
             instance.total = subtotal - instance.discount_amount
+
+            if not lines_data and instance.status != Sale.STATUS_NONPAYE:
+                instance.status = "ANNULE"
 
         instance.save()
         return instance

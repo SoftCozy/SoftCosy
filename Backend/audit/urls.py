@@ -6,3 +6,4 @@ router = DefaultRouter()
 router.register(r'audit-logs', AuditLogViewSet)
 
 urlpatterns = router.urls
+

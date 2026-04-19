@@ -1,18 +1,20 @@
 # audit/apps.py  (ou dans une app qui est chargée tôt)
 
 from django.apps import AppConfig
-
+import sys
 
 class AuditConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'audit'
 
     def ready(self):
-        # Éviter les doubles imports / doubles démarrages en mode reloader
+        # Importer ici pour éviter les imports circulaires
+        import audit.signals
+
         from django.conf import settings
         if settings.DEBUG:
             import os
-            if os.environ.get('RUN_MAIN') != 'true':
+            if os.environ.get('RUN_MAIN') != 'true' and 'shell' not in sys.argv:
                 return
 
         # Importer ici pour éviter les imports circulaires
@@ -36,4 +38,5 @@ class AuditConfig(AppConfig):
         )
 
         scheduler.start()
-        print("Scheduler APScheduler démarré → purge audit quotidienne à 04:00")
+        import audit.signals
+        print("Scheduler APScheduler demarre -> purge audit quotidienne a 04:00")
