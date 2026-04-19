@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema_view, extend_schema
 from .models import Category, Product, Variant
 from .serializers import (
     CategorySerializer,
