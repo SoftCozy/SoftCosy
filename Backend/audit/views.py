@@ -20,7 +20,7 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = AuditLog.objects.select_related('user').order_by('-perform_at')
     serializer_class = AuditLogSerializer
     permission_classes = [IsAdminUser]
-    filterset_fields = ['action', 'enitity', 'user', 'perform_at__date']
-    search_fields = ['user__email', 'enitity', 'action']
+    filterset_fields = ['action', 'entity', 'user', 'perform_at__date']
+    search_fields = ['user__email', 'entity', 'action']
     ordering_fields = ['perform_at']
     ordering = ['-perform_at']

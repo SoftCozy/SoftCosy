@@ -36,4 +36,4 @@ class AuditConfig(AppConfig):
         )
 
         scheduler.start()
-        print("Scheduler APScheduler démarré → purge audit quotidienne à 04:00")
+        print("Scheduler APScheduler demarre - purge audit quotidienne 04:00")
