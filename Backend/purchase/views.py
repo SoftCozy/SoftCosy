@@ -3,6 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from .models import Supplier, Purchase, PurchaseLine
 from .serializers import (
@@ -14,6 +15,14 @@ from .serializers import (
 )
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['purchases'], summary='List suppliers'),
+    create=extend_schema(tags=['purchases'], summary='Create a supplier'),
+    retrieve=extend_schema(tags=['purchases'], summary='Get a supplier'),
+    update=extend_schema(tags=['purchases'], summary='Update a supplier'),
+    partial_update=extend_schema(tags=['purchases'], summary='Partially update a supplier'),
+    destroy=extend_schema(tags=['purchases'], summary='Delete a supplier'),
+)
 class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer
@@ -23,6 +32,14 @@ class SupplierViewSet(viewsets.ModelViewSet):
     ordering = ['name']
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['purchases'], summary='List purchase lines'),
+    create=extend_schema(tags=['purchases'], summary='Create a purchase line'),
+    retrieve=extend_schema(tags=['purchases'], summary='Get a purchase line'),
+    update=extend_schema(tags=['purchases'], summary='Update a purchase line'),
+    partial_update=extend_schema(tags=['purchases'], summary='Partially update a purchase line'),
+    destroy=extend_schema(tags=['purchases'], summary='Delete a purchase line'),
+)
 class PurchaseLineViewSet(viewsets.ModelViewSet):
     queryset = PurchaseLine.objects.select_related('purchase', 'product', 'variant')
     serializer_class = PurchaseLineSerializer
@@ -30,8 +47,17 @@ class PurchaseLineViewSet(viewsets.ModelViewSet):
     filterset_fields = ['purchase', 'product', 'variant']
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['purchases'], summary='List purchases'),
+    create=extend_schema(tags=['purchases'], summary='Create a purchase'),
+    retrieve=extend_schema(tags=['purchases'], summary='Get a purchase'),
+    update=extend_schema(tags=['purchases'], summary='Update a purchase'),
+    partial_update=extend_schema(tags=['purchases'], summary='Partially update a purchase'),
+    destroy=extend_schema(tags=['purchases'], summary='Delete a purchase'),
+)
 class PurchaseViewSet(viewsets.ModelViewSet):
     queryset = Purchase.objects.select_related('supplier').prefetch_related('lines')
+    serializer_class = PurchaseListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):

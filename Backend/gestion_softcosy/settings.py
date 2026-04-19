@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'drf_spectacular',
     'axes',  # Ajout pour le verrouillage après tentatives échouées
     'debug_toolbar',  # Ajout pour le debug toolbar
 ]
@@ -74,6 +75,44 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# API Documentation (drf-spectacular)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SoftCosy API',
+    'DESCRIPTION': (
+        'REST API for SoftCosy — a sports inventory management system.\n\n'
+        '## Authentication\n'
+        'All endpoints (except `/api/token/`) require a token.\n'
+        'Obtain one via `POST /api/token/` then pass it as:\n'
+        '```\nAuthorization: Token <your_token>\n```\n\n'
+        '## Modules\n'
+        '- **Products** — categories, products, variants (SKU/barcode/pricing)\n'
+        '- **Stock** — on-hand quantities, movements, alerts\n'
+        '- **Sales** — customers, sales orders, sale lines\n'
+        '- **Purchases** — suppliers, purchase orders, purchase lines\n'
+        '- **Inventory counts** — physical counts and variance tracking\n'
+        '- **Audit** — immutable log of all create/update/delete actions\n'
+    ),
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'CONTACT': {'name': 'SoftCosy Team'},
+    'LICENSE': {'name': 'Proprietary'},
+    'ENUM_NAME_OVERRIDES': {
+        'SaleStatusEnum': ['PAYE', 'NONPAYE', 'PARTIEL'],
+        'InventoryCountStatusEnum': ['ENCOURS', 'FINI'],
+    },
+    'TAGS': [
+        {'name': 'auth', 'description': 'Authentication — obtain and manage tokens'},
+        {'name': 'users', 'description': 'User accounts and role management'},
+        {'name': 'products', 'description': 'Products, categories, and variants'},
+        {'name': 'stock', 'description': 'Stock levels, movements, and alerts'},
+        {'name': 'sales', 'description': 'Sales orders, customers, and sale lines'},
+        {'name': 'purchases', 'description': 'Purchase orders, suppliers, and purchase lines'},
+        {'name': 'inventory-counts', 'description': 'Physical inventory counts and variance tracking'},
+        {'name': 'audit', 'description': 'Audit log — read-only, admin only'},
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,

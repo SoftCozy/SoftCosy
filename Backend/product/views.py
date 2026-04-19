@@ -10,6 +10,14 @@ from .serializers import (
 )
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['products'], summary='List categories'),
+    create=extend_schema(tags=['products'], summary='Create a category'),
+    retrieve=extend_schema(tags=['products'], summary='Get a category'),
+    update=extend_schema(tags=['products'], summary='Update a category'),
+    partial_update=extend_schema(tags=['products'], summary='Partially update a category'),
+    destroy=extend_schema(tags=['products'], summary='Delete a category'),
+)
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -19,6 +27,14 @@ class CategoryViewSet(viewsets.ModelViewSet):
     ordering = ['name']
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['products'], summary='List variants'),
+    create=extend_schema(tags=['products'], summary='Create a variant'),
+    retrieve=extend_schema(tags=['products'], summary='Get a variant'),
+    update=extend_schema(tags=['products'], summary='Update a variant'),
+    partial_update=extend_schema(tags=['products'], summary='Partially update a variant'),
+    destroy=extend_schema(tags=['products'], summary='Delete a variant'),
+)
 class VariantViewSet(viewsets.ModelViewSet):
     queryset = Variant.objects.select_related('product')
     serializer_class = VariantSerializer
@@ -27,6 +43,14 @@ class VariantViewSet(viewsets.ModelViewSet):
     search_fields = ['sku', 'barcode', 'model']
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['products'], summary='List products'),
+    create=extend_schema(tags=['products'], summary='Create a product'),
+    retrieve=extend_schema(tags=['products'], summary='Get a product'),
+    update=extend_schema(tags=['products'], summary='Update a product'),
+    partial_update=extend_schema(tags=['products'], summary='Partially update a product'),
+    destroy=extend_schema(tags=['products'], summary='Delete a product'),
+)
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.select_related('category').prefetch_related('variants')
     permission_classes = [IsAuthenticated]
