@@ -1,5 +1,6 @@
 # Backend d'authentification par email
 AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
     'user.backends.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
@@ -28,12 +29,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-q=jiv%#!+-6w6u%cc))4((0*^rbmge%qj4i$3^-62k!&8=p7i+'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-q=jiv%#!+-6w6u%cc))4((0*^rbmge%qj4i$3^-62k!&8=p7i+')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -73,7 +74,9 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
 }
 
 # Optionnel : mot de passe plus sécurisé (Argon2 recommandé en 2026)
@@ -172,6 +175,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-INTERNAL_ips =[
+INTERNAL_IPS = [
     '127.0.0.1',
 ]
+
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:8081').split(',')
