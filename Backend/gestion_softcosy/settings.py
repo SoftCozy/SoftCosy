@@ -38,6 +38,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
+    'corsheaders',  # CORS support
     'user',
     'product',
     'inventorycount',
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     'purchase',
     'audit.apps.AuditConfig',
     'stockmouvement',
+    'dashboard',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -60,18 +62,21 @@ INSTALLED_APPS = [
 
 # Configuration django-axes : verrouillage après 3 tentatives échouées
 AXES_FAILURE_LIMIT = 3
-AXES_COOLOFF_TIME = 0.09  # 5 minutes de verrouillage
-AXES_LOCKOUT_TEMPLATE = None  # Utilise la réponse JSON par défaut pour API
+AXES_COOLOFF_TIME = 0.0833  # 5 minutes de verrouillage (5/60 = 0.0833)
+AXES_LOCKOUT_CALLABLE = 'gestion_softcosy.utils.axes_lockout_json'
+AXES_USERNAME_FORM_FIELD = 'email'
+AXES_ENABLE_ACCESS_FAILURE_LOG = True
+AXES_RESET_ON_SUCCESS = True
 
 
 # Use custom user model
 AUTH_USER_MODEL = 'user.User'
 
-# Authentification REST
+# Authentification REST et Optimisations
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',  # utile pour le browsable API
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -116,6 +121,15 @@ SPECTACULAR_SETTINGS = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+  
+  'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/hour'
+    }
 }
 
 # Optionnel : mot de passe plus sécurisé (Argon2 recommandé en 2026)
@@ -129,6 +143,7 @@ PASSWORD_HASHERS = [
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware (doit être avant CommonMiddleware)
     'axes.middleware.AxesMiddleware',  # Ajout du middleware Axes
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -214,21 +229,16 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-INTERNAL_IPS = [
-    '127.0.0.1',
+# Configuration CORS pour accepter les requêtes du frontend
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
 ]
 
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:8081').split(',')
+CORS_ALLOW_CREDENTIALS = True
 
-# Email (alerts & notifications)
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
-ADMIN_NOTIFY_EMAIL = os.getenv('ADMIN_NOTIFY_EMAIL', EMAIL_HOST_USER)
-
-# Stock movement retention (days)
-STOCK_MOVEMENT_RETENTION_DAYS = int(os.getenv('STOCK_MOVEMENT_RETENTION_DAYS', 180))
+# Media files configuration (Uploaded images)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

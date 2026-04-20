@@ -31,6 +31,21 @@ class Purchase(models.Model):
 	supplier = models.ForeignKey("purchase.Supplier", on_delete=models.SET_NULL, null=True, blank=True, related_name="purchases")
 	created_at = models.DateTimeField(auto_now_add=True)
 
+	def save(self, *args, **kwargs):
+		if not self.id and not self.reference:
+			import datetime
+			now = datetime.datetime.now()
+			last_p = Purchase.objects.all().order_by('id').last()
+			if last_p and last_p.reference and last_p.reference.startswith(f"CMD-{now.year}-"):
+				try:
+					last_num = int(last_p.reference.split('-')[2])
+					self.reference = f"CMD-{now.year}-{last_num + 1:04d}"
+				except:
+					pass
+			if not self.reference:
+				self.reference = f"CMD-{now.year}-0001"
+		super().save(*args, **kwargs)
+
 	class Meta:
 		db_table = "purchase"
 		verbose_name = "Purchase"
@@ -45,7 +60,7 @@ class PurchaseLine(models.Model):
 	id = models.AutoField(primary_key=True)
 	purchase = models.ForeignKey("purchase.Purchase", on_delete=models.CASCADE, related_name="lines")
 	product = models.ForeignKey("product.Product", on_delete=models.PROTECT, related_name="purchase_lines")
-	variant = models.ForeignKey("product.Variant", on_delete=models.PROTECT, null=True, blank=True, related_name="purchase_lines")
+	variant = models.ForeignKey("product.Variant", on_delete=models.SET_NULL, null=True, blank=True, related_name="purchase_lines")
 	quantity = models.IntegerField(default=0)
 	unit_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 	line_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)

@@ -1,28 +1,8 @@
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
-from drf_spectacular.utils import extend_schema, extend_schema_view
-from .serializers import CustomAuthTokenSerializer
-
-# Vue personnalisée pour l'authentification par token avec email
-@extend_schema(tags=['auth'], summary='Obtain auth token', description='Submit email and password to receive an authentication token.')
-class CustomObtainAuthToken(ObtainAuthToken):
-    serializer_class = CustomAuthTokenSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            'token': token.key,
-            'user_id': user.id,
-            'email': user.email
-        })
 from django.shortcuts import render
-
-# Create your views here.
 from rest_framework import viewsets, status, generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import update_session_auth_hash
@@ -30,9 +10,42 @@ from django.contrib.auth import update_session_auth_hash
 from .models import User
 from .serializers import (
     UserListSerializer, UserDetailSerializer, UserCreateSerializer,
-    UserMeUpdateSerializer, PasswordChangeSerializer
+    UserMeUpdateSerializer, PasswordChangeSerializer, CustomAuthTokenSerializer
 )
 from .permissions import IsAdminOrSelf, IsAdminUser
+from axes.handlers.proxy import AxesProxyHandler
+from axes.helpers import get_lockout_response
+from drf_spectacular.utils import extend_schema, extend_schema_view
+
+# Vue personnalisée pour l'authentification par token avec email
+@extend_schema(tags=['auth'], summary='Obtain auth token', description='Submit email and password to receive an authentication token.')
+class CustomObtainAuthToken(ObtainAuthToken):
+    permission_classes = [AllowAny]
+    authentication_classes = []  # Ne pas essayer d'authentifier la requête elle-même
+    serializer_class = CustomAuthTokenSerializer
+
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        print(f"DEBUG: Tentative de connexion pour {email}")
+        
+        # Vérification manuelle du lockout pour DRF
+        if AxesProxyHandler.is_locked(request, credentials={'email': email}):
+            print(f"DEBUG: Compte verrouillé pour {email}")
+            return get_lockout_response(request, credentials={'email': email})
+
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        if not serializer.is_valid():
+            print(f"DEBUG: Validation échouée: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        print(f"DEBUG: Connexion réussie pour {user.email}")
+        return Response({
+            'token': token.key,
+            'user_id': user.id,
+            'email': user.email
+        })
 
 
 @extend_schema_view(

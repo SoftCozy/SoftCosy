@@ -29,7 +29,7 @@ class UserListSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'username', 'email', 'full_name', 'phone', 'address',
-            'role', 'is_active', 'is_staff', 'created_at'
+            'role', 'is_active', 'is_staff', 'image', 'image_url', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 
@@ -40,7 +40,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'email', 'full_name', 'phone', 'address',
             'role', 'is_active', 'is_staff', 'is_superuser',
-            'created_at'
+            'image', 'image_url', 'created_at'
         ]
         read_only_fields = ['id', 'created_at', 'is_superuser']
 
@@ -53,7 +53,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'username', 'email', 'full_name', 'phone', 'address',
-            'role', 'password', 'password2'
+            'role', 'password', 'password2', 'image', 'image_url'
         ]
 
     def validate(self, attrs):
@@ -75,7 +75,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
             phone=validated_data.get('phone'),
             address=validated_data.get('address'),
             role=validated_data.get('role', 'SELLER'),
-            password=password
+            password=password,
+            image=validated_data.get('image'),
+            image_url=validated_data.get('image_url')
         )
         return user
 

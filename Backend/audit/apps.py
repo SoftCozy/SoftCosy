@@ -1,15 +1,21 @@
 # audit/apps.py
 
 from django.apps import AppConfig
-
+import sys
 
 class AuditConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'audit'
 
     def ready(self):
-        import os
+        # Importer ici pour éviter les imports circulaires
+        import audit.signals
+
         from django.conf import settings
+        if settings.DEBUG:
+            import os
+            if os.environ.get('RUN_MAIN') != 'true' and 'shell' not in sys.argv:
+                return
 
         # Avoid double-start in dev reloader
         if settings.DEBUG and os.environ.get('RUN_MAIN') != 'true':

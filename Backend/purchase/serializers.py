@@ -121,22 +121,70 @@ class PurchaseCreateUpdateSerializer(serializers.ModelSerializer):
             sub_total += line_cost
 
         purchase.sub_total = sub_total
-        purchase.purchase_cost = sub_total   # si pas de frais supplémentaires
+        purchase.purchase_cost = sub_total   # si pas de frais supplementaires
         purchase.total = sub_total           # idem
         purchase.save(update_fields=['sub_total', 'purchase_cost', 'total'])
 
         return purchase
 
+    def _trigger_stock_reception(self, purchase, user=None):
+        """
+        Quand un achat passe au statut RECU, cree des mouvements de stock ENTREE
+        pour chaque ligne.
+        - Si la ligne a une variante: mouvement lie a la variante (Stock + StockMovement normal)
+        - Si le produit n'a aucune variante: mouvement lie au produit directement (product-level)
+          L'utilisateur pourra allouer ce stock aux variantes plus tard depuis la page Stocks.
+        """
+        from stockmouvement.models import Stock, StockMovement
+
+        for line in purchase.lines.select_related('variant', 'product').all():
+            target_variant = line.variant
+
+            if not target_variant:
+                # Chercher une variante existante pour ce produit
+                target_variant = line.product.variants.first()
+
+            if target_variant:
+                # Mouvement normal lie a une variante specifique
+                stock, _ = Stock.objects.get_or_create(variant=target_variant)
+                StockMovement.objects.create(
+                    stock=stock,
+                    purchase_line=line,
+                    user=user,
+                    movement_type="ENTREE",
+                    quantite=line.quantity,
+                    reason="ACHAT_FOURNISSEUR",
+                    notes=f"Reception achat {purchase.reference} - {line.quantity} x {target_variant}"
+                )
+            else:
+                # Aucune variante: mouvement niveau produit (stock=None, product=...)
+                # Le stock est enregistre au niveau produit et sera distribue aux variantes plus tard
+                StockMovement.objects.create(
+                    product=line.product,
+                    stock=None,
+                    purchase_line=line,
+                    user=user,
+                    movement_type="ENTREE",
+                    quantite=line.quantity,
+                    reason="ACHAT_FOURNISSEUR",
+                    notes=f"Reception achat {purchase.reference} - {line.quantity} x {line.product.name} (sans variante)"
+                )
+
+
     @transaction.atomic
     def update(self, instance, validated_data):
         lines_data = validated_data.pop('lines', None)
 
-        # Mise à jour champs simples
+        # Capturer l'ancien statut avant de l'ecraser
+        old_status = instance.status
+        new_status = validated_data.get('status', old_status)
+
+        # Mise a jour champs simples
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         if lines_data is not None:
-            # Approche simple : on supprime et recrée les lignes
+            # Approche simple : on supprime et recree les lignes
             instance.lines.all().delete()
 
             sub_total = 0
@@ -154,6 +202,14 @@ class PurchaseCreateUpdateSerializer(serializers.ModelSerializer):
             instance.sub_total = sub_total
             instance.purchase_cost = sub_total
             instance.total = sub_total
-            instance.save(update_fields=['sub_total', 'purchase_cost', 'total'])
+
+        # TOUJOURS sauvegarder pour persister le statut et les autres champs
+        instance.save()
+
+        # Si le statut vient de passer a RECU, declencher la reception du stock
+        if new_status == 'RECU' and old_status != 'RECU':
+            request = self.context.get('request')
+            user = request.user if request else None
+            self._trigger_stock_reception(instance, user=user)
 
         return instance
