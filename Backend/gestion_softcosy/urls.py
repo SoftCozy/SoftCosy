@@ -41,6 +41,7 @@ router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
 router.register(r'settings', SystemSettingsViewSet, basename='system-settings')
 router.register(r'dashboard', DashboardViewSet, basename='dashboard')
 
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from django.conf import settings
 from django.conf.urls.static import static
 
