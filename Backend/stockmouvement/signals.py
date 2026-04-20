@@ -1,6 +1,8 @@
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
 from sale.models import SaleLine
 from product.models import Variant
 from .models import Stock, StockMovement, Alert, SystemSettings
@@ -15,7 +17,7 @@ def create_stock_for_new_variant(sender, instance, created, **kwargs):
 @receiver(post_save, sender=SaleLine)
 def handle_sale_line_creation(sender, instance, created, **kwargs):
     """
-    Quand une ligne de vente est créée → créer mouvement de stock (le signal de StockMovement s'occupera du reste)
+    When a sale line is created: decrease stock, record movement, email alert if low.
     """
     if not created:
         return
@@ -24,7 +26,6 @@ def handle_sale_line_creation(sender, instance, created, **kwargs):
     if not variant:
         return
 
-    # Récupérer ou créer l'enregistrement stock
     stock, _ = Stock.objects.get_or_create(variant=variant)
 
     # On ne met plus à jour le stock ici, on laisse le signal StockMovement s'en charger
@@ -165,6 +166,27 @@ def handle_movement_update(sender, instance, created, **kwargs):
 
 
 # Recalcul available_qty à chaque sauvegarde de Stock
+    if stock.available_qty <= 5:
+        severite = "CRITICAL" if stock.available_qty <= 0 else "WARNING"
+        subject = f"[SoftCosy] {severite} — Stock faible : {variant}"
+        message = (
+            f"Alerte stock — {severite}\n\n"
+            f"Produit  : {variant}\n"
+            f"Stock disponible : {stock.available_qty} unité(s)\n"
+            f"Seuil   : 5 unités\n\n"
+            f"Vente concernée : #{instance.sale_id}\n"
+            f"Date            : {timezone.now().strftime('%Y-%m-%d %H:%M')} UTC\n\n"
+            "Veuillez réapprovisionner ce produit dès que possible."
+        )
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.ADMIN_NOTIFY_EMAIL],
+            fail_silently=True,
+        )
+
+
 @receiver(pre_save, sender=Stock)
 def ensure_available_qty(sender, instance, **kwargs):
     instance.available_qty = instance.on_hand_qty - instance.reserved_qty
