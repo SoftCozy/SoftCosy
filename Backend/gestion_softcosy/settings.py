@@ -79,7 +79,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'gestion_softcosy.pagination.FlexiblePagination',
     'PAGE_SIZE': 20,
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
@@ -200,3 +200,9 @@ CORS_ALLOW_CREDENTIALS = True
 # Media files configuration (Uploaded images)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ── Google Drive — Backup quotidien ───────────────────────────────────────────
+# Fichier client_secrets OAuth 2.0 (type "Application de bureau") téléchargé depuis Google Cloud
+GOOGLE_OAUTH_CLIENT_SECRETS_PATH = os.getenv('GOOGLE_OAUTH_CLIENT_SECRETS_PATH', '')
+# ID du dossier Google Drive où stocker les backups (copier depuis l'URL du dossier Drive)
+GOOGLE_DRIVE_PARENT_FOLDER_ID = os.getenv('GOOGLE_DRIVE_PARENT_FOLDER_ID', '')

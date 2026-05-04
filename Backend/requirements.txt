@@ -4,7 +4,16 @@ django-cors-headers==4.9.0
 djangorestframework==3.16.1
 psycopg2-binary==2.9.11
 python-decouple==3.8
+python-dotenv
 sqlparse==0.5.5
 tzdata==2025.3
 django-axes
 django-filter
+argon2-cffi
+# Backup & scheduler
+APScheduler==3.10.4
+reportlab==4.2.5
+# Google Drive API
+google-api-python-client==2.162.0
+google-auth==2.40.0
+google-auth-httplib2==0.2.0
