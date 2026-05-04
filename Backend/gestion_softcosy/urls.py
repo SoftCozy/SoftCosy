@@ -15,7 +15,6 @@ from sale.views import CustomerViewSet, SaleViewSet, SaleLineViewSet
 from stockmouvement.views import StockViewSet, StockMovementViewSet, AlertViewSet, SystemSettingsViewSet
 from purchase.views import SupplierViewSet, PurchaseViewSet, PurchaseLineViewSet
 from inventorycount.views import InventoryCountViewSet, InventoryLineViewSet
-from audit.views import AuditLogViewSet
 from dashboard.views import DashboardViewSet
 
 # Création du router principal (DefaultRouter gère l'api-root racine)
@@ -37,7 +36,6 @@ router.register(r'purchases', PurchaseViewSet, basename='purchase')
 router.register(r'purchase-lines', PurchaseLineViewSet, basename='purchase-line')
 router.register(r'inventory-counts', InventoryCountViewSet, basename='inventory-count')
 router.register(r'inventory-lines', InventoryLineViewSet, basename='inventory-line')
-router.register(r'audit-logs', AuditLogViewSet, basename='audit-log')
 router.register(r'settings', SystemSettingsViewSet, basename='system-settings')
 router.register(r'dashboard', DashboardViewSet, basename='dashboard')
 

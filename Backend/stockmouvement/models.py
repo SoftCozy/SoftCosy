@@ -76,7 +76,6 @@ class Alert(models.Model):
     ALERT_TYPE_CHOICES = (
         ("stock_bas", "Stock Bas"),
         ("vente_anormale", "Vente Anormale"),
-        ("audit_purge_warning", "Avertissement purge journal d'audit"),
         ("securite", "Sécurité"),
     )
 

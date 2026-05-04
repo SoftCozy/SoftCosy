@@ -11,7 +11,6 @@ import decimal
 from sale.models import Sale, SaleLine
 from stockmouvement.models import Stock, StockMovement, Alert
 from product.models import Product, Category
-from audit.models import AuditLog
 
 class DashboardViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -144,16 +143,7 @@ class DashboardViewSet(viewsets.ViewSet):
             date_val=F('date')
         )
         
-        # Audit Logs récents (triés et avec le typox 'enitity')
-        from django.db.models.functions import Coalesce
-        audit_logs = AuditLog.objects.all().select_related('user').order_by('-perform_at')[:10].annotate(
-            user_email=Coalesce(F('user__email'), models.Value('Système'))
-        ).values(
-            'id', 'action', 'enitity', 'perform_at', user_name=F('user_email')
-        )
-
         return Response({
             'low_stock': list(low_stock),
             'movements': list(movements),
-            'audit_logs': list(audit_logs)
         })

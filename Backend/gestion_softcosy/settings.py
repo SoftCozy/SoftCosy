@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'inventorycount',
     'sale',
     'purchase',
-    'audit.apps.AuditConfig',
     'stockmouvement',
     'dashboard',
     'django.contrib.admin',
