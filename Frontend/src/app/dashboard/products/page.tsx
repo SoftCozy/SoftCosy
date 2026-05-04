@@ -1,20 +1,19 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { 
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Package, 
-  Layers, 
-  Trash2, 
-  Edit2, 
-  ChevronDown, 
-  ChevronUp, 
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Package,
+  Layers,
+  Trash2,
+  Edit2,
+  ChevronDown,
+  ChevronUp,
   Activity,
-  Filter,
   ArrowUpDown,
-  Info
+  Info,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api'
@@ -145,9 +144,6 @@ export default function ProductsPage() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl border-border/50">
-              <Filter className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl border-border/50">
               <ArrowUpDown className="w-4 h-4" />
             </Button>
           </div>
@@ -253,7 +249,7 @@ export default function ProductsPage() {
                           </span>
                         </td>
                         <td className="p-4">
-                          <div className="text-sm font-black text-foreground">{getMainPrice(product.variants).toLocaleString()} €</div>
+                          <div className="text-sm font-black text-foreground">{getMainPrice(product.variants).toLocaleString()} FCFA</div>
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-1.5">
@@ -265,9 +261,9 @@ export default function ProductsPage() {
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => setProductToEdit(product)}
                               className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
                             >
@@ -284,7 +280,7 @@ export default function ProductsPage() {
                                   {expandedId === product.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                   {expandedId === product.id ? 'Masquer détails' : 'Voir détails'}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => { if(confirm('Supprimer ce produit ?')) deleteProductMutation.mutate(product.id!) }}
                                   className="text-destructive gap-2 focus:bg-destructive/5 focus:text-destructive cursor-pointer"
                                 >
@@ -320,7 +316,7 @@ export default function ProductsPage() {
                                     <tr key={v.id || i} className="hover:bg-muted/40 transition-colors">
                                       <td className="p-3 font-mono font-medium">{v.sku || 'N/A'}</td>
                                       <td className="p-3"><Badge variant="secondary" className="px-1.5 py-0 rounded text-[9px] font-bold">{v.size || 'Unique'}</Badge></td>
-                                      <td className="p-3 font-bold">{v.selling_price} €</td>
+                                      <td className="p-3 font-bold">{v.selling_price} FCFA</td>
                                       <td className="p-3 font-medium">{v.stock || 0}</td>
                                       <td className="p-3">
                                         <Badge className={`rounded-full text-[9px] h-4 ${v.is_active ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-muted text-muted-foreground hover:bg-muted'}`}>
@@ -368,8 +364,10 @@ export default function ProductsPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => setProductToEdit(product)} className="gap-2"><Edit2 className="w-4 h-4" /> Modifier</DropdownMenuItem>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem onClick={() => setProductToEdit(product)} className="gap-2">
+                                  <Edit2 className="w-4 h-4" /> Modifier
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
                                   onClick={() => { if(confirm('Supprimer ce produit ?')) deleteProductMutation.mutate(product.id!) }}
                                   className="text-destructive gap-2"
                                 >
@@ -389,7 +387,7 @@ export default function ProductsPage() {
                       </div>
                       <div>
                         <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.1em] mb-1">Prix (Dès)</p>
-                        <p className="text-sm font-black">{getMainPrice(product.variants)} €</p>
+                        <p className="text-sm font-black">{getMainPrice(product.variants)} FCFA</p>
                       </div>
                    </div>
                    
@@ -410,7 +408,7 @@ export default function ProductsPage() {
                               <p className="text-xs font-bold text-foreground">{v.size || 'Unique'}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-black text-primary">{v.selling_price} €</p>
+                              <p className="text-sm font-black text-primary">{v.selling_price} FCFA</p>
                               <p className="text-[10px] font-bold text-muted-foreground">{v.stock || 0} en stock</p>
                             </div>
                           </div>
@@ -484,10 +482,11 @@ export default function ProductsPage() {
         }}
       />
 
-      <CategoryManagementModal 
+      <CategoryManagementModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
       />
+
     </main>
     </div>
   )

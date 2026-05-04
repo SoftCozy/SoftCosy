@@ -270,9 +270,6 @@ export default function StocksPage() {
                   <option value="SORTIE">Sorties</option>
                   <option value="AJUSTEMENT">Ajustements</option>
                 </select>
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl border-border/50">
-                  <Filter className="w-4 h-4" />
-                </Button>
               </div>
             </div>
           </Card>
@@ -325,12 +322,7 @@ export default function StocksPage() {
                                <div className="w-10 h-10 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center shrink-0">
                                  <Package className="w-5 h-5 text-primary/50" />
                                </div>
-                               <div>
-                                 <div className="font-bold text-foreground text-sm">{group.product_name}</div>
-                                 <div className="text-[10px] text-muted-foreground font-mono mt-0.5 uppercase tracking-tighter">
-                                   {group.movements.filter(m => m.variant_sku).map(m => m.variant_sku).filter((v, i, a) => a.indexOf(v) === i).slice(0, 3).join(' · ') || 'Sans variante'}
-                                 </div>
-                               </div>
+                               <div className="font-bold text-foreground text-sm">{group.product_name}</div>
                              </div>
                            </td>
                            <td className="p-4 text-center">

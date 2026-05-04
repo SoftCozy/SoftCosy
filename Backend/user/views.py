@@ -15,8 +15,10 @@ from .serializers import (
 from .permissions import IsAdminOrSelf, IsAdminUser
 from axes.handlers.proxy import AxesProxyHandler
 from axes.helpers import get_lockout_response
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 # Vue personnalisée pour l'authentification par token avec email
+@extend_schema(tags=['auth'], summary='Obtain auth token', description='Submit email and password to receive an authentication token.')
 class CustomObtainAuthToken(ObtainAuthToken):
     permission_classes = [AllowAny]
     authentication_classes = []  # Ne pas essayer d'authentifier la requête elle-même
@@ -46,6 +48,14 @@ class CustomObtainAuthToken(ObtainAuthToken):
         })
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['users'], summary='List users (admin only)'),
+    create=extend_schema(tags=['users'], summary='Create a user (admin only)'),
+    retrieve=extend_schema(tags=['users'], summary='Get a user'),
+    update=extend_schema(tags=['users'], summary='Update a user'),
+    partial_update=extend_schema(tags=['users'], summary='Partially update a user'),
+    destroy=extend_schema(tags=['users'], summary='Delete a user'),
+)
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
@@ -71,6 +81,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return User.objects.all()
         return User.objects.filter(id=self.request.user.id)
 
+    @extend_schema(tags=['users'], summary='Get or update current user profile')
     @action(detail=False, methods=['get', 'patch'], permission_classes=[IsAuthenticated])
     def me(self, request):
         if request.method == 'GET':
@@ -87,6 +98,7 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data)
 
+    @extend_schema(tags=['users'], summary='Change current user password')
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def change_password(self, request):
         serializer = PasswordChangeSerializer(

@@ -3,6 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from drf_spectacular.utils import extend_schema_view, extend_schema
 
 from .models import Customer, Sale, SaleLine
 from .serializers import (
@@ -14,6 +15,14 @@ from .serializers import (
 )
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['sales'], summary='List customers'),
+    create=extend_schema(tags=['sales'], summary='Create a customer'),
+    retrieve=extend_schema(tags=['sales'], summary='Get a customer'),
+    update=extend_schema(tags=['sales'], summary='Update a customer'),
+    partial_update=extend_schema(tags=['sales'], summary='Partially update a customer'),
+    destroy=extend_schema(tags=['sales'], summary='Delete a customer'),
+)
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
@@ -23,6 +32,14 @@ class CustomerViewSet(viewsets.ModelViewSet):
     ordering = ['name']
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['sales'], summary='List sale lines'),
+    create=extend_schema(tags=['sales'], summary='Create a sale line'),
+    retrieve=extend_schema(tags=['sales'], summary='Get a sale line'),
+    update=extend_schema(tags=['sales'], summary='Update a sale line'),
+    partial_update=extend_schema(tags=['sales'], summary='Partially update a sale line'),
+    destroy=extend_schema(tags=['sales'], summary='Delete a sale line'),
+)
 class SaleLineViewSet(viewsets.ModelViewSet):
     queryset = SaleLine.objects.select_related('sale', 'product', 'variant')
     serializer_class = SaleLineSerializer
@@ -30,8 +47,17 @@ class SaleLineViewSet(viewsets.ModelViewSet):
     filterset_fields = ['sale', 'product', 'variant']
 
 
+@extend_schema_view(
+    list=extend_schema(tags=['sales'], summary='List sales'),
+    create=extend_schema(tags=['sales'], summary='Create a sale'),
+    retrieve=extend_schema(tags=['sales'], summary='Get a sale'),
+    update=extend_schema(tags=['sales'], summary='Update a sale'),
+    partial_update=extend_schema(tags=['sales'], summary='Partially update a sale'),
+    destroy=extend_schema(tags=['sales'], summary='Delete a sale'),
+)
 class SaleViewSet(viewsets.ModelViewSet):
     queryset = Sale.objects.select_related('customer', 'user').prefetch_related('lines')
+    serializer_class = SaleListSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     search_fields = ['invoice_number', 'customer__name']
     ordering_fields = ['-id', 'sold_at', 'total']

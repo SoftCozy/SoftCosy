@@ -13,7 +13,7 @@ class AuditLogSerializer(serializers.ModelSerializer):
             'user',
             'user_email',
             'action',
-            'enitity',
+            'entity',
             'object_id',
             'perform_at',
             'user_agent',

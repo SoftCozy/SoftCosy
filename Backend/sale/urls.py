@@ -9,5 +9,5 @@ router.register(r'sales', SaleViewSet)
 router.register(r'sale-lines', SaleLineViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('sale', include(router.urls)),
 ]

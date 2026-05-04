@@ -14,7 +14,7 @@ class AuditLog(models.Model):
 	id = models.AutoField(primary_key=True)
 	user = models.ForeignKey("user.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="audit_logs")
 	action = models.CharField(max_length=20, choices=ACTION_CHOICES)
-	enitity = models.CharField(max_length=255, help_text="Table name", db_column='entity')
+	entity = models.CharField(max_length=255, help_text="Table name", db_column='entity')
 	object_id = models.IntegerField(null=True, blank=True)
 	data_before = models.JSONField(null=True, blank=True)
 	data_after = models.JSONField(null=True, blank=True)
@@ -28,4 +28,4 @@ class AuditLog(models.Model):
 		ordering = ["-perform_at", "-id"]
 
 	def __str__(self):
-		return f"AuditLog: {self.action.upper()} on {self.enitity} (ID: {self.object_id})"
+		return f"AuditLog: {self.action.upper()} on {self.entity} (ID: {self.object_id})"

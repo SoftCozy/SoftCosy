@@ -10,6 +10,7 @@ tzdata==2025.3
 django-axes
 django-filter
 argon2-cffi
+drf-spectacular
 # Backup & scheduler
 APScheduler==3.10.4
 reportlab==4.2.5

@@ -29,12 +29,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-q=jiv%#!+-6w6u%cc))4((0*^rbmge%qj4i$3^-62k!&8=p7i+'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-q=jiv%#!+-6w6u%cc))4((0*^rbmge%qj4i$3^-62k!&8=p7i+')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -55,7 +55,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'drf_spectacular',
     'axes',  # Ajout pour le verrouillage après tentatives échouées
+    'debug_toolbar',  # Ajout pour le debug toolbar
 ]
 
 # Configuration django-axes : verrouillage après 3 tentatives échouées
@@ -80,8 +82,10 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_PAGINATION_CLASS': 'gestion_softcosy.pagination.FlexiblePagination',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'PAGE_SIZE': 20,
-    'DEFAULT_THROTTLE_CLASSES': [
+  
+  'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle'
     ],
@@ -111,6 +115,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',  # Ajout du middleware Debug Toolbar
 ]
 
 ROOT_URLCONF = 'gestion_softcosy.urls'
