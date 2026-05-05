@@ -35,8 +35,8 @@ export default function NotificationBell() {
   const unreadCount = visibleAlerts.length
 
   const handleOpenChange = (open: boolean) => {
-    if (open && visibleAlerts.length > 0) {
-      // Marquer toutes les alertes actuelles comme vues
+    // Marquer comme vues à la FERMETURE — l'utilisateur a eu le temps de lire
+    if (!open && visibleAlerts.length > 0) {
       setSeenIds(prev => new Set([...prev, ...visibleAlerts.map(a => a.id)]))
     }
   }
