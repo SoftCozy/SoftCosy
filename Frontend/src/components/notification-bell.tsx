@@ -1,10 +1,9 @@
 'use client'
 
-import { Bell } from 'lucide-react'
+import { Bell, AlertTriangle, X } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
@@ -20,7 +19,6 @@ interface LowStockAlert {
 }
 
 export default function NotificationBell() {
-  // IDs des alertes déjà vues — elles disparaissent jusqu'à ce qu'un nouveau stock passe sous seuil
   const [seenIds, setSeenIds] = useState<Set<number>>(new Set())
 
   const { data: recentData } = useQuery({
@@ -30,19 +28,16 @@ export default function NotificationBell() {
   })
 
   const allAlerts: LowStockAlert[] = recentData?.low_stock || []
-  // Seules les alertes non encore vues sont affichées
   const visibleAlerts = allAlerts.filter(a => !seenIds.has(a.id))
   const unreadCount = visibleAlerts.length
 
-  const handleOpenChange = (open: boolean) => {
-    // Marquer comme vues à la FERMETURE — l'utilisateur a eu le temps de lire
-    if (!open && visibleAlerts.length > 0) {
-      setSeenIds(prev => new Set([...prev, ...visibleAlerts.map(a => a.id)]))
-    }
+  const dismiss = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSeenIds(prev => new Set([...prev, id]))
   }
 
   return (
-    <DropdownMenu onOpenChange={handleOpenChange}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
           <Bell className="w-5 h-5" />
@@ -58,25 +53,38 @@ export default function NotificationBell() {
           <h3 className="font-semibold text-foreground">Notifications Stock</h3>
           {unreadCount > 0 && (
             <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-              {unreadCount} nouvelle{unreadCount > 1 ? 's' : ''}
+              {unreadCount} alerte{unreadCount > 1 ? 's' : ''}
             </span>
           )}
         </div>
         <div className="max-h-[400px] overflow-auto">
           {visibleAlerts.length > 0 ? (
             visibleAlerts.map((alert) => (
-              <DropdownMenuItem
+              <div
                 key={alert.id}
-                className="p-4 flex flex-col items-start gap-1 cursor-default focus:bg-muted/50"
+                className={`group p-4 flex gap-3 border-b border-border/50 last:border-0 transition-colors hover:bg-muted/30 ${
+                  alert.severite === 'critical'
+                    ? 'border-l-4 border-l-red-500'
+                    : 'border-l-4 border-l-orange-500'
+                }`}
               >
-                <div className="flex items-center gap-2 w-full">
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${
-                    alert.severite === 'critical' ? 'bg-red-500' : 'bg-orange-500'
+                <div className="shrink-0 mt-0.5">
+                  <AlertTriangle className={`w-4 h-4 ${
+                    alert.severite === 'critical' ? 'text-red-500' : 'text-orange-500'
                   }`} />
-                  <span className="font-medium text-sm text-foreground flex-1">{alert.titre}</span>
                 </div>
-                <p className="text-xs text-muted-foreground line-clamp-2 pl-4">{alert.message}</p>
-              </DropdownMenuItem>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-foreground leading-tight">{alert.titre}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{alert.message}</p>
+                </div>
+                <button
+                  onClick={(e) => dismiss(alert.id, e)}
+                  className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground p-0.5 rounded"
+                  title="Fermer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
             ))
           ) : (
             <div className="p-8 text-center text-muted-foreground text-sm">
