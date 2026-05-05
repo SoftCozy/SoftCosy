@@ -12,6 +12,9 @@ django-filter
 argon2-cffi
 drf-spectacular
 django-debug-toolbar
+# Production
+gunicorn
+whitenoise
 # Backup & scheduler
 APScheduler==3.10.4
 reportlab==4.2.5

@@ -55,9 +55,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'drf_spectacular',
-    'axes',  # Ajout pour le verrouillage après tentatives échouées
-    'debug_toolbar',  # Ajout pour le debug toolbar
-]
+    'axes',
+] + (['debug_toolbar'] if DEBUG else [])
 
 # Configuration django-axes : verrouillage après 3 tentatives échouées
 AXES_FAILURE_LIMIT = 3
@@ -105,17 +104,17 @@ PASSWORD_HASHERS = [
 
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # CORS middleware (doit être avant CommonMiddleware)
-    'axes.middleware.AxesMiddleware',  # Ajout du middleware Axes
+    'corsheaders.middleware.CorsMiddleware',
+    'axes.middleware.AxesMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',  # Ajout du middleware Debug Toolbar
-]
+] + (['debug_toolbar.middleware.DebugToolbarMiddleware'] if DEBUG else [])
 
 ROOT_URLCONF = 'gestion_softcosy.urls'
 
@@ -189,15 +188,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Configuration CORS pour accepter les requêtes du frontend
+_cors_extra = os.getenv('CORS_ALLOWED_ORIGINS', '')
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:3001',
     'http://127.0.0.1:3001',
-]
+] + [o.strip() for o in _cors_extra.split(',') if o.strip()]
 
 CORS_ALLOW_CREDENTIALS = True
 
