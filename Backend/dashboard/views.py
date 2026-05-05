@@ -25,9 +25,11 @@ class DashboardViewSet(viewsets.ViewSet):
             total=Sum(F('available_qty') * F('variant__selling_price'), output_field=models.DecimalField())
         )['total'] or 0
 
-        # Alertes actives : produits dont le stock est sous le seuil (calculé dynamiquement)
+        # Alertes actives : nombre de produits distincts dont le stock est sous le seuil
         settings_obj, _ = SystemSettings.objects.get_or_create(id=1)
-        active_alerts = Stock.objects.filter(available_qty__lte=settings_obj.low_stock_threshold).count()
+        active_alerts = Stock.objects.filter(
+            available_qty__lte=settings_obj.low_stock_threshold
+        ).values('variant__product').distinct().count()
 
         # CA Total (Ventes totales enregistrées)
         total_sales_amount = Sale.objects.aggregate(Sum('total'))['total__sum'] or 0
@@ -127,7 +129,7 @@ class DashboardViewSet(viewsets.ViewSet):
         """Produits en stock faible (calculé dynamiquement) et mouvements récents"""
         settings_obj, _ = SystemSettings.objects.get_or_create(id=1)
 
-        # Produits sous le seuil d'alerte — dédupliqué par produit (pire stock retenu)
+        # Tous les produits sous le seuil — dédupliqué par produit (pire stock retenu)
         low_stock_qs = Stock.objects.select_related('variant__product').filter(
             available_qty__lte=settings_obj.low_stock_threshold
         ).order_by('available_qty')
@@ -149,8 +151,6 @@ class DashboardViewSet(viewsets.ViewSet):
                 'message': f"Le stock pour {product_name} est de {s.available_qty} unités (Seuil: {settings_obj.low_stock_threshold}).",
                 'severite': 'critical' if is_critical else 'warning',
             })
-            if len(low_stock) == 5:
-                break
 
         # Mouvements récents
         movements = StockMovement.objects.all().order_by('-date')[:5].values(
