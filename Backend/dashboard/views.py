@@ -127,24 +127,30 @@ class DashboardViewSet(viewsets.ViewSet):
         """Produits en stock faible (calculé dynamiquement) et mouvements récents"""
         settings_obj, _ = SystemSettings.objects.get_or_create(id=1)
 
-        # Produits sous le seuil d'alerte (calculé en temps réel, sans table Alert)
+        # Produits sous le seuil d'alerte — dédupliqué par produit (pire stock retenu)
         low_stock_qs = Stock.objects.select_related('variant__product').filter(
             available_qty__lte=settings_obj.low_stock_threshold
-        ).order_by('available_qty')[:5]
+        ).order_by('available_qty')
 
+        seen_products = set()
         low_stock = []
         for s in low_stock_qs:
-            is_critical = s.available_qty <= settings_obj.critical_stock_threshold
             product_name = (
                 s.variant.product.name if s.variant and s.variant.product
                 else f'Stock #{s.id}'
             )
+            if product_name in seen_products:
+                continue
+            seen_products.add(product_name)
+            is_critical = s.available_qty <= settings_obj.critical_stock_threshold
             low_stock.append({
                 'id': s.id,
                 'titre': 'Rupture de Stock' if s.available_qty <= 0 else ('Stock Critique' if is_critical else 'Stock Faible'),
                 'message': f"Le stock pour {product_name} est de {s.available_qty} unités (Seuil: {settings_obj.low_stock_threshold}).",
                 'severite': 'critical' if is_critical else 'warning',
             })
+            if len(low_stock) == 5:
+                break
 
         # Mouvements récents
         movements = StockMovement.objects.all().order_by('-date')[:5].values(
