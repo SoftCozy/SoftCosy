@@ -129,7 +129,7 @@ export default function AddMovementModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stockMovements'] })
       queryClient.invalidateQueries({ queryKey: ['stocks'] })
-      queryClient.invalidateQueries({ queryKey: ['alerts'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-recent'] })
       if (onSuccess) onSuccess()
       onClose()
       resetForm()

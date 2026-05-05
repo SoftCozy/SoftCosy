@@ -12,7 +12,7 @@ from rest_framework.routers import DefaultRouter
 from user.views import CustomObtainAuthToken, UserViewSet
 from product.views import CategoryViewSet, ProductViewSet, VariantViewSet
 from sale.views import CustomerViewSet, SaleViewSet, SaleLineViewSet
-from stockmouvement.views import StockViewSet, StockMovementViewSet, AlertViewSet, SystemSettingsViewSet
+from stockmouvement.views import StockViewSet, StockMovementViewSet, SystemSettingsViewSet
 from purchase.views import SupplierViewSet, PurchaseViewSet, PurchaseLineViewSet
 from inventorycount.views import InventoryCountViewSet, InventoryLineViewSet
 from dashboard.views import DashboardViewSet
@@ -30,7 +30,6 @@ router.register(r'sales', SaleViewSet, basename='sale')
 router.register(r'sale-lines', SaleLineViewSet, basename='sale-line')
 router.register(r'stocks', StockViewSet, basename='stock')
 router.register(r'stock-movements', StockMovementViewSet, basename='stock-movement')
-router.register(r'alerts', AlertViewSet, basename='alert')
 router.register(r'suppliers', SupplierViewSet, basename='supplier')
 router.register(r'purchases', PurchaseViewSet, basename='purchase')
 router.register(r'purchase-lines', PurchaseLineViewSet, basename='purchase-line')

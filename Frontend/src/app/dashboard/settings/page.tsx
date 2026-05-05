@@ -7,9 +7,9 @@ import { useTheme } from 'next-themes'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  Moon, Sun, Bell, Lock, Palette, 
-  Settings as SettingsIcon, ShieldCheck, 
+import {
+  Moon, Sun, Bell, Palette,
+  Settings as SettingsIcon, ShieldCheck,
   RefreshCw, CheckCircle2, AlertTriangle, Info
 } from 'lucide-react'
 import api from '@/lib/api'
@@ -60,14 +60,12 @@ export default function SettingsPage() {
     }
   }, [systemSettings])
 
-  // 2. Récupération des dernières alertes de stock réelles
-  const { data: alerts = [] } = useQuery({
-    queryKey: ['alerts'],
-    queryFn: async () => {
-      const res = await api.get('/alerts/')
-      return res.data.results || res.data
-    }
+  // 2. Alertes de stock calculées dynamiquement (sans DB)
+  const { data: recentData } = useQuery({
+    queryKey: ['dashboard-recent'],
+    queryFn: async () => (await api.get('/dashboard/recent_data/')).data,
   })
+  const alerts: Array<{ id: number; titre: string; message: string; severite: string }> = recentData?.low_stock || []
 
   // 3. Mutation pour sauvegarder les réglages système
   const updateSettingsMutation = useMutation({
@@ -306,11 +304,8 @@ export default function SettingsPage() {
                             <div className="space-y-1.5 min-w-0">
                                 <p className="text-sm font-black tracking-tight leading-none group-hover/alert:text-primary transition-colors truncate">{alert.titre}</p>
                                 <p className="text-[11px] text-muted-foreground font-semibold leading-relaxed line-clamp-2">{alert.message}</p>
-                                <div className="pt-2 flex items-center justify-between">
-                                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-tighter">
-                                        {new Date(alert.dateAlerte).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })} • {new Date(alert.dateAlerte).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                    {alert.estLue && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                                <div className="pt-2">
+                                    <span className="text-[9px] font-black uppercase text-slate-400 tracking-tighter">Stock en temps réel</span>
                                 </div>
                             </div>
                           </div>
