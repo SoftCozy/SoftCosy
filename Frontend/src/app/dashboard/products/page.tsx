@@ -85,13 +85,15 @@ export default function ProductsPage() {
   }, [products, searchTerm])
 
   // ── Helpers ──────────────────────────────────
-  const calculateTotalStock = (variants: Variant[]) => {
-    return variants.reduce((sum, v) => sum + (v.stock || 0), 0)
-  }
-
   const getMainPrice = (variants: Variant[]) => {
     if (!variants || variants.length === 0) return 0
     return variants[0].selling_price || 0
+  }
+
+  const getImageUrl = (product: Product): string | undefined => {
+    if (product.image_url) return product.image_url
+    if (typeof product.image === 'string') return product.image as string
+    return undefined
   }
 
   // On ne bloque plus tout l'affichage
@@ -224,8 +226,8 @@ export default function ProductsPage() {
                         <td className="p-4">
                           <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-primary/5 border border-primary/10 overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
-                              {product.image || product.image_url ? (
-                                <img src={product.image || product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                              {getImageUrl(product) ? (
+                                <img src={getImageUrl(product)} alt={product.name} className="w-full h-full object-cover" />
                               ) : (
                                 <Package className="w-6 h-6 text-primary/40" />
                               )}
@@ -316,7 +318,7 @@ export default function ProductsPage() {
                                     <tr key={v.id || i} className="hover:bg-muted/40 transition-colors">
                                       <td className="p-3 font-mono font-medium">{v.sku || 'N/A'}</td>
                                       <td className="p-3"><Badge variant="secondary" className="px-1.5 py-0 rounded text-[9px] font-bold">{v.size || 'Unique'}</Badge></td>
-                                      <td className="p-3 font-bold">{v.selling_price} FCFA</td>
+                                      <td className="p-3 font-bold">{(v.selling_price || 0).toLocaleString()} FCFA</td>
                                       <td className="p-3 font-medium">{v.stock || 0}</td>
                                       <td className="p-3">
                                         <Badge className={`rounded-full text-[9px] h-4 ${v.is_active ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-muted text-muted-foreground hover:bg-muted'}`}>
@@ -348,8 +350,8 @@ export default function ProductsPage() {
                  <Card key={product.id} className="p-0 overflow-hidden border-border/50 bg-card rounded-2xl shadow-sm">
                    <div className="p-4 flex gap-4 border-b border-border/40">
                       <div className="w-16 h-16 rounded-xl bg-muted/30 border overflow-hidden flex items-center justify-center shrink-0">
-                        {product.image || product.image_url ? (
-                          <img src={product.image || product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                        {getImageUrl(product) ? (
+                          <img src={getImageUrl(product)} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
                           <Package className="w-8 h-8 text-muted-foreground/30" />
                         )}
@@ -387,7 +389,7 @@ export default function ProductsPage() {
                       </div>
                       <div>
                         <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.1em] mb-1">Prix (Dès)</p>
-                        <p className="text-sm font-black">{getMainPrice(product.variants)} FCFA</p>
+                        <p className="text-sm font-black">{getMainPrice(product.variants).toLocaleString()} FCFA</p>
                       </div>
                    </div>
                    
@@ -408,7 +410,7 @@ export default function ProductsPage() {
                               <p className="text-xs font-bold text-foreground">{v.size || 'Unique'}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-sm font-black text-primary">{v.selling_price} FCFA</p>
+                              <p className="text-sm font-black text-primary">{(v.selling_price || 0).toLocaleString()} FCFA</p>
                               <p className="text-[10px] font-bold text-muted-foreground">{v.stock || 0} en stock</p>
                             </div>
                           </div>
