@@ -105,7 +105,11 @@ export default function CashierPage() {
 
   const rawProducts: RawProduct[] = useMemo(() => {
     const data = rawProductsData?.results || rawProductsData
-    return Array.isArray(data) ? data : []
+    const all: RawProduct[] = Array.isArray(data) ? data : []
+    // Exclure les produits dont aucune variante active n'a de prix défini
+    return all.filter(p =>
+      p.variants.some(v => v.is_active !== false && (v.selling_price ?? 0) > 0)
+    )
   }, [rawProductsData])
 
   // ── Helpers produit ───────────────────────────

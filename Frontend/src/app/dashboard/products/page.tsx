@@ -91,7 +91,7 @@ export default function ProductsPage() {
 
   const getMainPrice = (variants: Variant[]) => {
     if (!variants || variants.length === 0) return 0
-    return variants[0].selling_price
+    return variants[0].selling_price || 0
   }
 
   // On ne bloque plus tout l'affichage
