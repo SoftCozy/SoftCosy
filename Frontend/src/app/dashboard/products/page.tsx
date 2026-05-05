@@ -31,8 +31,31 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 // Custom Modals
-import AddEditProductModal, { Product, Variant } from '@/components/add-product-modal'
+import AddEditProductModal from '@/components/add-product-modal'
 import CategoryManagementModal from '@/components/category-management-modal'
+
+// Type des données reçues de l'API (image = string URL, pas File)
+interface APIVariant {
+  id: number
+  sku?: string
+  size?: string
+  selling_price: number
+  cost_price?: number
+  stock?: number
+  is_active: boolean
+}
+
+interface APIProduct {
+  id: number
+  name: string
+  code_produit?: string
+  description?: string
+  image?: string
+  image_url?: string
+  category?: { id: number; name: string }
+  total_stock?: number
+  variants: APIVariant[]
+}
 
 export default function ProductsPage() {
   const queryClient = useQueryClient()
@@ -42,7 +65,7 @@ export default function ProductsPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
-  const [productToEdit, setProductToEdit] = useState<Product | null>(null)
+  const [productToEdit, setProductToEdit] = useState<APIProduct | null>(null)
   const [page, setPage] = useState(1)
   const [hasNextPage, setHasNextPage] = useState(false)
   const [hasPrevPage, setHasPrevPage] = useState(false)
@@ -59,7 +82,7 @@ export default function ProductsPage() {
   })
 
   // Accès sécurisé aux données paginées
-  const products = useMemo(() => {
+  const products: APIProduct[] = useMemo(() => {
     if (!productsData) return []
     return Array.isArray(productsData) ? productsData : (productsData.results || [])
   }, [productsData])
@@ -85,14 +108,14 @@ export default function ProductsPage() {
   }, [products, searchTerm])
 
   // ── Helpers ──────────────────────────────────
-  const getMainPrice = (variants: Variant[]) => {
+  const getMainPrice = (variants: APIVariant[]) => {
     if (!variants || variants.length === 0) return 0
     return variants[0].selling_price || 0
   }
 
-  const getImageUrl = (product: Product): string | undefined => {
+  const getImageUrl = (product: APIProduct): string | undefined => {
     if (product.image_url) return product.image_url
-    if (typeof product.image === 'string') return product.image as string
+    if (product.image) return product.image
     return undefined
   }
 
@@ -477,7 +500,7 @@ export default function ProductsPage() {
           setIsAddModalOpen(false)
           setProductToEdit(null)
         }}
-        productToEdit={productToEdit}
+        productToEdit={productToEdit as any}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['products'] })
           setProductToEdit(null)
